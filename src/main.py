@@ -8,7 +8,7 @@ def index():
 
 @app.route("/api/book/1")
 def book_one():
-    return jsonify({
+    response = jsonify({
         'sentences': [
             'The world is everything that is the case.',
             'What is the case (a fact) is the existence of states of affairs.',
@@ -19,3 +19,9 @@ def book_one():
             'Whereof one cannot speak, thereof one must be silent.'
         ]
     })
+    headers = { 'Access-Control-Allow-Origin': '*' }
+    return (response, headers)
+
+@app.route("/testing")
+def testing():
+    return ("Howdy, partner", { 'Access-Control-Allow-Origin': '*' })
