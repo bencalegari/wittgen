@@ -1,27 +1,66 @@
-from flask import Flask, render_template, jsonify
+from flask import render_template, jsonify
+from db import get_db, query_db
+from init import create_app
 
-app = Flask(__name__)
+app = create_app()
 
 @app.route("/")
 def index():
     return render_template('index.html')
 
-@app.route("/api/book/1")
-def book_one():
-    response = jsonify({
-        'sentences': [
-            'The world is everything that is the case.',
-            'What is the case (a fact) is the existence of states of affairs.',
-            'A logical picture of facts is a thought.',
-            'A thought is a proposition with a sense',
-            'A proposition is a truth-function of elementary proporsitions. (An elementary proposition is a truth-function of itself.)',
-            'The general form a proposition is the general form of a truth function, which is [stuff]. This is the general form of a proposition.',
-            'Whereof one cannot speak, thereof one must be silent.'
-        ]
-    })
-    headers = { 'Access-Control-Allow-Origin': '*' }
-    return (response, headers)
+@app.route('/api/books/1')
+def books_one():
+    return (jsonify(json_dict()), { 'Access-Control-Allow-Origin': '*' })
 
-@app.route("/testing")
-def testing():
-    return ("Howdy, partner", { 'Access-Control-Allow-Origin': '*' })
+def sentence_identifiers(sentences):
+    sentence_identifiers = []
+    for sentence in sentences:
+        sentence_identifiers.append({
+            'type': 'sentence',
+            'id': str(sentence['id'])
+        })
+    return sentence_identifiers
+
+def sentence_objects(sentences):
+    sentence_objects = []
+    for sentence in sentences:
+        sentence_objects.append({
+            'type': 'sentence',
+            'id': str(sentence['id']),
+            'attributes': {
+                'body': sentence['body']
+            },
+            'relationships': {
+                'book': {
+                    'data': {'type': 'user', 'id': str(sentence['book_id'])}
+                },
+                'parent': {
+                    'data': {'type': 'sentence', 'id': str(sentence['parent_id'])}
+                }
+            }
+        })
+    return sentence_objects
+
+def json_dict():
+    book = query_db('select * from book where id = ?', [1], one=True)
+    author = query_db('select * from user where id = ?', [book['author_id']], one=True)
+    sentences = query_db('select * from sentence where book_id = ?', [1])
+
+    return {
+        'data': {
+           'type': 'book',
+           'id': str(book['id']),
+           'attributes': {
+               'title': str(book['title'])
+           },
+           'relationships': {
+               'author': {
+                    'data': {'type': 'user', 'id': str(book['author_id'])}
+               },
+               'sentences': {
+                    'data': sentence_identifiers(sentences)
+               }
+           }
+        },
+        'included': [book, *sentence_objects(sentences)]
+    }

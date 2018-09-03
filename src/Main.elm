@@ -54,7 +54,7 @@ view : Model -> Html Msg
 view model =
   div []
     [ h2 [] [ text "Wittgen" ]
-    , button [ onClick FetchData ] [ text "Fetch Data!" ]
+    , button [ onClick FetchData ] [ text "Fetch the Tractatus!" ]
     , div [] (List.map displaySentence model.sentences)
     ]
 

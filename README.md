@@ -27,3 +27,75 @@ I also set up my IDE via the instructions found there. My IDE is Atom.
 
 ## other
 * the `Procfile` is for Heroku deployment
+* while still using sqlite3, use this command to quickly reset the db
+`rm witt.db && sqlite3 -init src/schema.sql witt.db`
+you will then have to quit out of the interactive terminal: `.quit`
+
+## api
+This application tries to conform to the json api specification (jsonapi.org).
+For example, when requesting book data, e.g., `/api/books/1`, a successful
+response looks like the following:
+```
+{
+	"data": {
+		"type": "book",
+		"id": "1",
+		"attributes": {
+			"title": "Tractatus Logico-Philosophicus",
+		},
+		"relationships": {
+			"author": {
+				"data": {"type": "user", "id": "1"}
+			},
+			"sentences": {
+				"data": [
+					{"type": "sentence", "id": "1"},
+					{"type": "sentence", "id": "2"}
+				]
+			}
+		}
+	},
+	"included": [
+		{
+			"type": "user",
+			"id": 1,
+			"attributes": {
+				"name": "Ludwig Wittgenstein"
+			}
+		},
+		{
+			"type": "sentence",
+			"id": "1",
+			"attributes": {
+				"body": "The world is everything that is the case."
+			},
+			"relationships": {
+				"author": {
+					"data": {"type": "user", "id": 1}
+				},
+				"book": {
+					"data": {"type": "book", "id" 1}
+				}
+			}
+		},
+		{
+			"type": "sentence",
+			"id": "2",
+			"attributes": {
+				"body": "The world is the totality of facts, not of things.",
+			},
+			"relationships": {
+				"author": {
+					"data": {"type": "user", "id": 1}
+				},
+				"book": {
+					"data": {"type": "book", "id" 1}
+				},
+				"parent": {
+					"data": {"type": "sentence", "id": 1}
+				}
+			}
+		}
+	]
+}
+```
